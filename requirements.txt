@@ -1,6 +1,2 @@
-tiktoken
-langchain-community
-langchain
 openai
 fastapi
-unstructured
