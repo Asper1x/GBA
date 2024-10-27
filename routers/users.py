@@ -14,10 +14,12 @@ from bson import ObjectId
 import motor.motor_asyncio
 from pymongo import ReturnDocument
 
+from MONGODB_URL import MONGODB_URL
+
 router = APIRouter()
 
 
-client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URL)
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 db = client.get_database("main")
