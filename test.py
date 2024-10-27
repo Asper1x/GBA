@@ -1,3 +1,5 @@
+#uvicorn test:app --reload
+
 import os
 from typing import Optional, List
 
@@ -16,8 +18,6 @@ from routers import users
 
 app = FastAPI()
 
-app.include_router(users.router)
-
 client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
@@ -35,6 +35,7 @@ class UserModel(BaseModel):
     weight: float = Field(...)
     dream_weight: float = Field(...)
     problems: str = Field(...)
+    reccomendations: str = Field(...)
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -45,6 +46,7 @@ class UserModel(BaseModel):
                 "weight" : 100.0,
                 "dream_weight" : 80.0,
                 "problems": "obese, high blood pressure",
+                "reccomendations": "eat less, exercise more",
             }
         },
     )
@@ -59,6 +61,7 @@ class UpdateUserModel(BaseModel):
     weight: Optional[float] = None
     dream_weight: Optional[float] = None
     problems: Optional[str] = None
+    reccomendations: Optional[str] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
@@ -69,6 +72,7 @@ class UpdateUserModel(BaseModel):
                 "weight" : 100.0,
                 "dream_weight" : 80.0,
                 "problems": "obese, high blood pressure",
+                "reccomendations": "eat less, exercise more",
             }
         },
     )
@@ -165,8 +169,3 @@ async def delete_user(id: str):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"user {id} not found")
-
-
-@app.get("/")
-def read_root():
-    return {"todo": "main page"}
