@@ -13,9 +13,12 @@ from bson import ObjectId
 import motor.motor_asyncio
 from pymongo import ReturnDocument
 
+from routers.users import UserModel, UsersCollection, user_collection
+
 from typing_extensions import Annotated
 
 from MONGODB_URL import MONGODB_URL
+
 
 ai_client = Client()
 router = APIRouter(tags=["dialogs"])
@@ -70,41 +73,82 @@ class DialogsCollection(BaseModel):
 
 user_dialogs = {}
 
+@router.get("/user/{id}")
+async def get_user_by_id(id: str):
+    """
+    Get a user by their unique ID.
+    """
+    try:
+        objectID = ObjectId(id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+
+
+    searched_user = await user_collection.find_one({"_id" : objectID})
+
+    if searched_user is None:
+        raise HTTPException(status_code=404, detail='User not found.')
+    user: UserModel = UserModel(**searched_user)
+    return user
+
+@router.post("/create_dialog/{id}")
+async def create_dialog(dialog: DialogQuery, id: str):
+
+    existing_dialog = await dialog_collection.find_one({"user_id": id})
+    if existing_dialog:
+        return {"error": "user already has dialog. Must continue dialog."}
+
+    try:
+        objectID = ObjectId(id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    searched_user = await user_collection.find_one({"_id": objectID})
+    if searched_user is None:
+        raise HTTPException(status_code=404, detail='User not found.')
+
+    response = ai_client.response(dialog.prompt, searched_user)
+    
+    
+    await dialog_collection.insert_one(
+        DialogModel(user_id=id, content=[dialog.prompt, response]).model_dump(by_alias=True)
+    )
+
+    return {"user_request" : [dialog.prompt, UserModel(**searched_user)], "response": response}
+
 @router.put("/continue_dialog/{id}")
 async def continue_dialog(dialog: DialogQuery, id: str):
-    response = ai_client.response(dialog.prompt)
-    
+
     existing_dialog = await dialog_collection.find_one({"user_id": id})
     if not existing_dialog:
         return {"error": "User doesn't have a dialog. Must create one."}
+    #todo change user data 
+    
+    try:
+        objectID = ObjectId(id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    searched_user = await user_collection.find_one({"_id": objectID})
+    if searched_user is None:
+        raise HTTPException(status_code=404, detail='User not found.')
+
+    response = ai_client.response(dialog.prompt, searched_user)
+    
+    
     
     await dialog_collection.find_one_and_update(
         {"user_id": id}, {"$push": {"content": [dialog.prompt, response]}}
     )
 
-    return {"user_request": dialog.prompt, "response": response}
+    return {"user_request": [dialog.prompt, UserModel(**searched_user)], "response": response}
 
 
-@router.post("/create_dialog/{id}")
-async def continue_dialog(dialog: DialogQuery, id: str):
 
-    response = ai_client.response(dialog.prompt)
-    
-    if dialog_collection.find_one({"user_id" : id}):
-        return {"error": "user already has dialog. Must continue dialog."}
-    
-    await dialog_collection.insert_one(
-        DialogModel(user_id=id, content=[[dialog.prompt, response]]).model_dump(by_alias=True)
-    )
-
-    return {"user_request" : dialog.prompt, "response": response}
 
 @router.get("/get_dialog/")
 async def get_dialog():
-    # Загружаем диалоги из базы данных
     dialogs = await dialog_collection.find().to_list(1000)
 
-    # Преобразуем данные для DialogsCollection
     processed_dialogs = []
     for dialog in dialogs:
         content = dialog.get("content", [])

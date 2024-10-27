@@ -13,7 +13,8 @@ class Client:
 
         if user_data:
             for key in user_data.keys():
-                user_data_prompt += f"{key}: {user_data[key]} "
+                if key != "_id":
+                    user_data_prompt += f"{key}: {user_data[key]} "
             
             full_prompt = f"{text}\n{user_data_prompt}"            
         else:

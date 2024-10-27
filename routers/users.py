@@ -30,11 +30,12 @@ class UserModel(BaseModel):
     """
     Container for a single user record.
     """
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    id: Optional[PyObjectId] = Field(alias="id", default=None)
     name: str = Field(...)
     age: int = Field(...)
     weight: float = Field(...)
     dream_weight: float = Field(...)
+    height: float = Field(...)
     problems: str = Field(...)
     reccomendations: str = Field(...)
     model_config = ConfigDict(
@@ -46,6 +47,7 @@ class UserModel(BaseModel):
                 "age": 27,
                 "weight" : 100.0,
                 "dream_weight" : 80.0,
+                "height" : 170.0,
                 "problems": "obese, high blood pressure",
                 "reccomendations": "eat less, exercise more",
             }
@@ -61,6 +63,7 @@ class UpdateUserModel(BaseModel):
     age: Optional[int] = None
     weight: Optional[float] = None
     dream_weight: Optional[float] = None
+    height: Optional[float] = None
     problems: Optional[str] = None
     reccomendations: Optional[str] = None
     model_config = ConfigDict(
@@ -72,6 +75,7 @@ class UpdateUserModel(BaseModel):
                 "age": 27,
                 "weight" : 100.0,
                 "dream_weight" : 80.0,
+                "height" : 170.0,
                 "problems": "obese, high blood pressure",
                 "reccomendations": "eat less, exercise more",
             }
@@ -134,8 +138,7 @@ async def update_user(id: str, user: UpdateUserModel = Body(...)):
     """
     Update individual fields of an existing user record.
 
-    Only the provided fields will be updated.
-    Any missing or `null` fields will be ignored.
+    Only the provided fields will be updated.dialog.promptd.
     """
     user = {
         k: v for k, v in user.model_dump(by_alias=True).items() if v is not None

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="signup-container">
+        <img src="bulb.png" alt="Logo">
+        <input type="text" placeholder="Username" required>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <input type="password" placeholder="Repeat Password" required>
+        <button type="submit">Sign Up</button>
+        <script>
+            document.querySelector('button[type="submit"]').addEventListener('click', function(event) {
+                event.preventDefault();
+            window.location.href = 'profile.html';
+            });
+        </script>
+  
+    
+</body>
+
+</html>
