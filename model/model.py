@@ -7,15 +7,23 @@ class Client:
         load_dotenv()
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
-    def response(self, text, user_data=""):
+    def response(self, text, user_data={}):
 
-        full_prompt = f"{user_data}\n{text}" if user_data else text
+        user_data_prompt = ""
+
+        if user_data:
+            for key in user_data.keys():
+                user_data_prompt += f"{key}: {user_data[key]} "
+            
+            full_prompt = f"{text}"
+        else:
+            full_prompt = f"{text}\n{user_data_prompt}"
+
 
         response = self.client.completions.create(
             model="davinci-002",
             prompt=full_prompt,  
-            max_tokens=100,
-            temperature=0.7
+            max_tokens=25,
+            temperature=0.2
         )
         return response.choices[0].text.strip() 
-
