@@ -1,2 +1,5 @@
 openai
 fastapi
+openai==0.28
+selenium
+ujson
