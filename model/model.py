@@ -26,4 +26,6 @@ class Client:
             max_tokens=25,
             temperature=0.2
         )
+        print(response.choices)
         return response.choices[0].text.strip() 
+
